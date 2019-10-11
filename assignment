@@ -1,7 +1,6 @@
-<html>
-<body>
-<code>
-This is under code section
-</code>
-</body>
-</html>
+
+<pre>
+
+This is <strong>under<strong> code section
+</pre>
+
