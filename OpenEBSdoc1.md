@@ -1,2 +1,1 @@
->[!WARNING]
->This is a warning
+> **_NOTE:_**  The note content.
