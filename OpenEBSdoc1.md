@@ -1,8 +1,7 @@
 <h1>Installing cStor</h1>
-<i>Links to each sub-section</i>
 
 ```
-<h2>Topics covered under this section</h2>
+**Topics covered under this section** 
 cStor Operators
 - What are cStor operators?
 - Why cStor Operators?(Operations)
@@ -22,7 +21,7 @@ cStor Operators
          - Tuning pools
      - Volumes
         - Expanding cStor volumes
-        - Tuning cStor volumes
+        - [Tuning cStor volumes](#tuning)
 //This will contain collapsible info regarding policies that can be configured.
 
 - Troubleshooting(Docs)
@@ -39,24 +38,8 @@ cStor Operators
 <b><h2>What are cStor operators?
 Why cStor Operators?(Operations)
 
-Deploying cStor Operators
-Prerequisites
-Installtaion
-Creation of Storage Pools
-Creation of Storage Classes
-Deploy a Sample Application
-Upgrade
-Uninstall
 
-Advanced operations
-Backup and Restore
-Pools
-Scaling cStor pools
-Block Device Tagging
-Tuning pools
-Volumes
-Expanding cStor volumes
-Tuning cStor volumes
+<id="tuning">Tuning cStor volumes</id>
 //This will contain collapsible info regarding policies that can be configured.
 
 Troubleshooting(Docs)
