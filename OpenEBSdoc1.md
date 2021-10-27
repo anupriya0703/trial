@@ -34,9 +34,10 @@ cStor Operators
 <b><h2>cStor Operators</b></h2>
 <b><h2>What are cStor operators?
 Why cStor Operators?(Operations)
-<deatils>
+
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
+<details>
 <summary>
 Replica Affinity to create a volume replica on specific pool
 </summary>
