@@ -1,6 +1,5 @@
 <h1>Installing cStor</h1>
 
-```
 **Topics covered under this section** 
 cStor Operators
 - What are cStor operators?
@@ -21,7 +20,7 @@ cStor Operators
          - Tuning pools
      - Volumes
         - Expanding cStor volumes
-        - [Tuning cStor volumes](#tuning)
+        - [Tuning cStor volumes](#tuning-vol)
 //This will contain collapsible info regarding policies that can be configured.
 
 - Troubleshooting(Docs)
@@ -30,16 +29,20 @@ cStor Operators
 - Roadmaps
 - Contribute
 - Adopters and Feedback
-```
+
 
 <i>//Just the top level heading so that the user gets an idea what is in the guide and for easier navigation b/w sub sections on the page</i>
 
 <b><h2>cStor Operators</b></h2>
 <b><h2>What are cStor operators?
 Why cStor Operators?(Operations)
+<deatils>
 
-
-<id="tuning">Tuning cStor volumes</id>
+## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
+<summary>
+Test
+</summary>
+</details>
 //This will contain collapsible info regarding policies that can be configured.
 
 Troubleshooting(Docs)
