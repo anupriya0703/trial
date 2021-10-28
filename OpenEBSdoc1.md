@@ -2,39 +2,38 @@
 
 
 >**Topics covered under this section** 
->cStor Operators
->- What are cStor operators?
->- Why cStor Operators?(Operations)
-- Deploying cStor Operators
-     -  Prerequisites
-     - Installtaion
-     - Creation of Storage Pools
-     - Creation of Storage Classes
-     - Deploy a Sample Application
-     - Upgrade
-     - Uninstall
-- Advanced operations
-     - Backup and Restore
-     - Pools
-         - Scaling cStor pools
-         - Block Device Tagging
-         - Tuning pools
-     - Volumes
-        - Expanding cStor volumes
-        - [Tuning cStor volumes](#tuning-vol)
-- Troubleshooting(Docs)
-
-- Alpha Features
-- Roadmaps
-- Contribute
-- Adopters and Feedback
+>- [cStor Operators](#cstor-operators)
+>- [Why cStor Operators?](#why-cstor-operators)
+>- Deploying cStor Operators
+>     -  Prerequisites
+>     - Installtaion
+>     - Creation of Storage Pools
+>     - Creation of Storage Classes
+>     - Deploy a Sample Application
+>     - Upgrade
+>     - Uninstall
+>- Advanced operations
+>     - Backup and Restore
+>     - Pools
+>         - Scaling cStor pools
+>         - Block Device Tagging
+>         - Tuning pools
+>     - Volumes
+>        - Expanding cStor volumes
+>        - [Tuning cStor volumes](#tuning-vol)
+>- Troubleshooting(Docs)
+>- Alpha Features
+>- Roadmaps
+>- Contribute
+>- Adopters and Feedback
 
 
 
+## <a class="anchor" aria-hidden="true" id="cstor-operators"></a>What are cStor Operators
 
-<b><h2>cStor Operators</b></h2>
-<b><h2>What are cStor operators?
-Why cStor Operators?(Operations)
+
+## <a class="anchor" aria-hidden="true" id="why-cstor-operators"></a>Why cStor Operators?
+
 
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
