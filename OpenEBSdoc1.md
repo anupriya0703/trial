@@ -1,7 +1,7 @@
 <h1>Installing cStor</h1>
 
 
-><h1>Topics covered under this section</h1>
+>Topics covered under this section
 >- [cStor Operators](#cstor-operators)
 >- [Why cStor Operators?](#why-cstor-operators)
 >- Deploying cStor Operators
