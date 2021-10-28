@@ -1,9 +1,10 @@
 <h1>Installing cStor</h1>
 
-**Topics covered under this section** 
-cStor Operators
-- What are cStor operators?
-- Why cStor Operators?(Operations)
+
+>**Topics covered under this section** 
+>cStor Operators
+>- What are cStor operators?
+>- Why cStor Operators?(Operations)
 - Deploying cStor Operators
      -  Prerequisites
      - Installtaion
@@ -29,7 +30,7 @@ cStor Operators
 - Adopters and Feedback
 
 
-<i>//Just the top level heading so that the user gets an idea what is in the guide and for easier navigation b/w sub sections on the page</i>
+
 
 <b><h2>cStor Operators</b></h2>
 <b><h2>What are cStor operators?
