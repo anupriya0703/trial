@@ -38,7 +38,7 @@ cStor operators are a collection of enhanced Kubernetes operators used for manag
  - volume-manager
 
 An OpenEBS admin/user can use CSPC(CStorPoolCluster) API (YAML) to provision cStor pools in a Kubernetes cluster. As the name suggests, CSPC can be used to create a cluster of cStor pools across Kubernetes nodes. It is the job of cspc-operator to reconcile the CSPC object and provision CStorPoolInstance(s) as specified in the CSPC. A cStor pool is provisioned on node by utilising the disks attached to the node and is represented by CStorPoolInstance(CSPI) custom resource in a Kubernetes cluster. One has freedom to specify the disks that they want to use for pool provisioning.
-CSPC API comes with a variety of tunables and features and the API can be viewed for [here](https://github.com/openebs/api/blob/HEAD/pkg/apis/cstor/v1/cstorpoolcluster.go).
+CSPC API comes with a variety of tunables and features and the API can be viewed for <a href="https://github.com/openebs/api/blob/HEAD/pkg/apis/cstor/v1/cstorpoolcluster.go" target="_blank">here</a>.
 
 
 ## <a class="anchor" aria-hidden="true" id="why-cstor-operators"></a>Why cStor Operators?
