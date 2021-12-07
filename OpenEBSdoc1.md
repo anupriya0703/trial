@@ -65,8 +65,9 @@ The cStor operators work in conjunction with the [cStor CSI driver](https://gith
 
 ## <a class="anchor" aria-hidden="true" id="deploying-cstor-operators"></a>Deploying cStor Operators
 
--  <details>
+   <details>
      <summary><b>Prerequisites</b></summary>
+     
    1. Kubernetes version 1.17 or higher.
    2. iSCSI initiator utils installed on all the worker nodes. 
    
