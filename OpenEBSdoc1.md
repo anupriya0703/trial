@@ -4,8 +4,8 @@
 >Topics covered under this section
 >- [cStor Operators](#cstor-operators)
 >- [Why cStor Operators?](#why-cstor-operators)
->- Deploying cStor Operators
->     -  Prerequisites
+>- [Deploying cStor Operators](#deploying-cstor-operators)
+>     - Prerequisites
 >     - Installtaion
 >     - Creation of Storage Pools
 >     - Creation of Storage Classes
@@ -51,8 +51,8 @@ The cStor operators work in conjunction with the [cStor CSI driver](https://gith
 
 ## <a class="anchor" aria-hidden="true" id="why-cstor-operators"></a>Why cStor Operators?
 
- The cStor operators support a whole range of operations on cStor pools and volumes. Some of which are listed below:
-- Provisioning and De-provisioning of cStor pools.
+ cStor operators support a whole range of advanced operations on cStor pools and volumes. Some of which are listed below:
+- Provision and De-provision cStor pools.
 - Pool expansion by adding disk.
 - Disk replacement by removing a disk.
 - Volume replica scale up and scale down.
@@ -60,6 +60,23 @@ The cStor operators work in conjunction with the [cStor CSI driver](https://gith
 - Backup and Restore via Velero-plugin.
 - Seamless upgrades of cStor Pools and Volumes
 - Support migration from old cStor operators (using SPC) to new cStor operators using CSPC and CSI Driver.
+
+<i>Each of these operations is detailed here.</i>
+
+## <a class="anchor" aria-hidden="true" id="deploying-cstor-operators"></a>Deploying cStor Operators
+
+-  <details>
+  <summary><b>Prerequisites</b></summary>
+  1. Kubernetes version 1.17 or higher.
+  2. iSCSI initiator utils installed on all the worker nodes. 
+   
+   > In case of a Rancher based cluster ensure the rerequisites mentioned [here](https://github.com/   openebs/cstor-operators/blob/develop/docs/troubleshooting/rancher_prerequisite.md) are met.
+   | OPERATING SYSTEM | iSCSI PACKAGE         | Commands to install iSCSI                                | Verify iSCSI Status         |
+   | ---------------- | --------------------- | -------------------------------------------------------- | --------------------------- |
+   | RHEL/CentOS      | iscsi-initiator-utils | <ul><li>sudo yum install iscsi-initiator-utils -y</li><li>sudo systemctl enable --now iscsid</li></ul> | sudo systemctl status iscsid.service |
+   | Ubuntu/Debian   | open-iscsi            |  <ul><li>sudo apt install open-iscsi -y</li><li>sudo systemctl enable --now iscsid</li></ui>| sudo systemctl status iscsid.service |
+   | RancherOS        | open-iscsi            |  <ul><li>sudo ros s enable open-iscsi</li><li>sudo ros s up open-iscsi</li></ui>| ros service list iscsi |
+  </details>
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
 <details>
