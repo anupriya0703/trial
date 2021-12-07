@@ -66,17 +66,17 @@ The cStor operators work in conjunction with the [cStor CSI driver](https://gith
 ## <a class="anchor" aria-hidden="true" id="deploying-cstor-operators"></a>Deploying cStor Operators
 
 -  <details>
-  <summary><b>Prerequisites</b></summary>
-  1. Kubernetes version 1.17 or higher.
-  2. iSCSI initiator utils installed on all the worker nodes. 
+     <summary><b>Prerequisites</b></summary>
+   1. Kubernetes version 1.17 or higher.
+   2. iSCSI initiator utils installed on all the worker nodes. 
    
-   > In case of a Rancher based cluster ensure the rerequisites mentioned [here](https://github.com/   openebs/cstor-operators/blob/develop/docs/troubleshooting/rancher_prerequisite.md) are met.
+    In case of a Rancher based cluster ensure the rerequisites mentioned [here](https://github.com/   openebs/cstor-operators/blob/develop/docs/troubleshooting/rancher_prerequisite.md) are met.
    | OPERATING SYSTEM | iSCSI PACKAGE         | Commands to install iSCSI                                | Verify iSCSI Status         |
    | ---------------- | --------------------- | -------------------------------------------------------- | --------------------------- |
    | RHEL/CentOS      | iscsi-initiator-utils | <ul><li>sudo yum install iscsi-initiator-utils -y</li><li>sudo systemctl enable --now iscsid</li></ul> | sudo systemctl status iscsid.service |
    | Ubuntu/Debian   | open-iscsi            |  <ul><li>sudo apt install open-iscsi -y</li><li>sudo systemctl enable --now iscsid</li></ui>| sudo systemctl status iscsid.service |
    | RancherOS        | open-iscsi            |  <ul><li>sudo ros s enable open-iscsi</li><li>sudo ros s up open-iscsi</li></ui>| ros service list iscsi |
-  </details>
+   </details>
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
 <details>
