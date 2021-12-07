@@ -51,7 +51,15 @@ The cStor operators work in conjunction with the [cStor CSI driver](https://gith
 
 ## <a class="anchor" aria-hidden="true" id="why-cstor-operators"></a>Why cStor Operators?
 
-
+ The cStor operators support a whole range of operations on cStor pools and volumes. Some of which are listed below:
+- Provisioning and De-provisioning of cStor pools.
+- Pool expansion by adding disk.
+- Disk replacement by removing a disk.
+- Volume replica scale up and scale down.
+- Volume resize.
+- Backup and Restore via Velero-plugin.
+- Seamless upgrades of cStor Pools and Volumes
+- Support migration from old cStor operators (using SPC) to new cStor operators using CSPC and CSI Driver.
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
 <details>
