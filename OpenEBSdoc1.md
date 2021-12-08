@@ -132,6 +132,74 @@ helm install openebs-cstor openebs-cstor/cstor -n openebs --create-namespace
 
 [Click here](https://github.com/openebs/cstor-operators/blob/HEAD/deploy/helm/charts/README.md) for detailed instructions.
 
+### Using Operator:
+
+Install the latest release using CStor Operator yaml.
+
+```bash
+kubectl apply -f https://openebs.github.io/charts/cstor-operator.yaml
+```
+<details>
+  <summary>Click here if you're using MicroK8s.</summary>
+
+  ```bash
+  microk8s kubectl apply -f https://openebs.github.io/charts/microk8s-cstor-operator.yaml
+  ```
+</details>
+
+
+### Local Development:
+
+
+Alternatively, you may also install the development version  of CStor Operators using:
+
+```bash
+$ git clone https://github.com/openebs/cstor-operators.git
+$ cd cstor-operators
+$ kubectl create -f deploy/yamls/rbac.yaml
+$ kubectl create -f deploy/yamls/ndm-operator.yaml
+$ kubectl create -f deploy/crds
+$ kubectl create -f deploy/yamls/cspc-operator.yaml
+$ kubectl create -f deploy/yamls/csi-operator.yaml
+```
+
+ **Note: If running on K8s version lesser than 1.17, you will need to comment the `priorityClassName: system-cluster-critical` in the csi-operator.yaml**
+ 
+Once installed using any of the above methods, verify that all NDM and CStor operators pods are running. 
+
+```bash
+$ kubectl get pod -n openebs
+
+NAME                                                              READY   STATUS    RESTARTS   AGE
+cspc-operator-5fb7db848f-wgnq8                                    1/1     Running   0          6d7h
+cvc-operator-7f7d8dc4c5-sn7gv                                     1/1     Running   0          6d7h
+openebs-cstor-admission-server-7585b9659b-rbkmn                   1/1     Running   0          6d7h
+openebs-cstor-csi-controller-0                                    7/7     Running   0          6d7h
+openebs-cstor-csi-node-dl58c                                      2/2     Running   0          6d7h
+openebs-cstor-csi-node-jmpzv                                      2/2     Running   0          6d7h
+openebs-cstor-csi-node-tfv45                                      2/2     Running   0          6d7h
+openebs-ndm-gctb7                                                 1/1     Running   0          6d7h
+openebs-ndm-operator-7c8759dbb5-58zpl                             1/1     Running   0          6d7h
+openebs-ndm-sfczv                                                 1/1     Running   0          6d7h
+openebs-ndm-vgdnv                                                 1/1     Running   0          6d6h
+```
+
+Check that blockdevices are created:
+
+```bash
+$ kubectl get bd -n openebs
+
+NAME                                           NODENAME           SIZE          CLAIMSTATE   STATUS   AGE
+blockdevice-01afcdbe3a9c9e3b281c7133b2af1b68   worker3            21474836480   Unclaimed    Active   2m10s
+blockdevice-10ad9f484c299597ed1e126d7b857967   worker1            21474836480   Unclaimed    Active   2m17s
+blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b   worker2            21474836480   Unclaimed    Active   2m12s
+```
+
+NOTE:
+1. It can take little while for blockdevices to appear when the application is warming up.
+2. For a blockdevice to appear, you must have disks attached to node.
+</details>
+
 <div id="uninstall">
 <details>
      <summary><b>Uninstall</b></summary>
@@ -291,73 +359,6 @@ No resources found in default namespace.
     blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b  worker-node-2    21474836480   Unclaimed   Active   21m12s
    ```
 
-</details>
-
-### Using Operator:
-
-Install the latest release using CStor Operator yaml.
-
-```bash
-kubectl apply -f https://openebs.github.io/charts/cstor-operator.yaml
-```
-<details>
-  <summary>Click here if you're using MicroK8s.</summary>
-
-  ```bash
-  microk8s kubectl apply -f https://openebs.github.io/charts/microk8s-cstor-operator.yaml
-  ```
-</details>
-
-
-### Local Development:
-
-Alternatively, you may also install the development version  of CStor Operators using:
-
-```bash
-$ git clone https://github.com/openebs/cstor-operators.git
-$ cd cstor-operators
-$ kubectl create -f deploy/yamls/rbac.yaml
-$ kubectl create -f deploy/yamls/ndm-operator.yaml
-$ kubectl create -f deploy/crds
-$ kubectl create -f deploy/yamls/cspc-operator.yaml
-$ kubectl create -f deploy/yamls/csi-operator.yaml
-```
-
- **Note: If running on K8s version lesser than 1.17, you will need to comment the `priorityClassName: system-cluster-critical` in the csi-operator.yaml**
- 
-Once installed using any of the above methods, verify that all NDM and CStor operators pods are running. 
-
-```bash
-$ kubectl get pod -n openebs
-
-NAME                                                              READY   STATUS    RESTARTS   AGE
-cspc-operator-5fb7db848f-wgnq8                                    1/1     Running   0          6d7h
-cvc-operator-7f7d8dc4c5-sn7gv                                     1/1     Running   0          6d7h
-openebs-cstor-admission-server-7585b9659b-rbkmn                   1/1     Running   0          6d7h
-openebs-cstor-csi-controller-0                                    7/7     Running   0          6d7h
-openebs-cstor-csi-node-dl58c                                      2/2     Running   0          6d7h
-openebs-cstor-csi-node-jmpzv                                      2/2     Running   0          6d7h
-openebs-cstor-csi-node-tfv45                                      2/2     Running   0          6d7h
-openebs-ndm-gctb7                                                 1/1     Running   0          6d7h
-openebs-ndm-operator-7c8759dbb5-58zpl                             1/1     Running   0          6d7h
-openebs-ndm-sfczv                                                 1/1     Running   0          6d7h
-openebs-ndm-vgdnv                                                 1/1     Running   0          6d6h
-```
-
-Check that blockdevices are created:
-
-```bash
-$ kubectl get bd -n openebs
-
-NAME                                           NODENAME           SIZE          CLAIMSTATE   STATUS   AGE
-blockdevice-01afcdbe3a9c9e3b281c7133b2af1b68   worker3            21474836480   Unclaimed    Active   2m10s
-blockdevice-10ad9f484c299597ed1e126d7b857967   worker1            21474836480   Unclaimed    Active   2m17s
-blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b   worker2            21474836480   Unclaimed    Active   2m12s
-```
-
-NOTE:
-1. It can take little while for blockdevices to appear when the application is warming up.
-2. For a blockdevice to appear, you must have disks attached to node.
 </details>
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
