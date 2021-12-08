@@ -21,9 +21,9 @@
 >     - Volumes
 >        - Expanding cStor volumes
 >        - [Tuning cStor volumes](#tuning-vol)
->- Troubleshooting(Docs)
->- Alpha Features
->- Roadmaps
+>- [Troubleshooting](#troubleshooting)
+>- [Alpha Features](#alphaFeatures)
+>- [Roadmaps](#Roadmaps)
 >- Contribute
 >- Adopters and Feedback
 
@@ -258,7 +258,13 @@ Priority class for volume target deployment
 Priority classes can help in controlling the Kubernetes schedulers decisions to favor higher priority pods over lower priority pods. The Kubernetes scheduler can even preempt lower priority pods that are running, so that pending higher priority pods can be scheduled. Setting pod priority also prevents lower priority workloads from impacting critical workloads in the cluster, especially in cases where the cluster starts to reach its resource capacity. To know more about PriorityClasses in Kubernetes, click here.
 </details>
 
-Troubleshooting(Docs)
+## <a class="anchor" aria-hidden="true" id="troubleshooting"></a>Troubleshooting
 
-Alpha Features
-Roadmaps
+## <a class="anchor" aria-hidden="true" id="alphaFeatures"></a>Alpha Features
+
+## <a class="anchor" aria-hidden="true" id="roadmaps"></a>Roadmaps
+
+
+
+
+
