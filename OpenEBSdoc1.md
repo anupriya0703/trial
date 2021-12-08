@@ -7,11 +7,11 @@
 >- [Deploying cStor Operators](#deploying-cstor-operators)
 >     - [Prerequisites](#prerequisites)
 >     - [Installtaion](#installation)
->     - Creation of Storage Pools
+>     - [Creation of Storage Pools](#cspc)
 >     - Creation of Storage Classes
 >     - Deploy a Sample Application
 >     - Upgrade
->     - [Uninstall](#uninstall)
+>     - [Uninstallation](#uninstall)
 >- Advanced operations
 >     - Backup and Restore
 >     - Pools
@@ -202,7 +202,7 @@ NOTE:
 
 <div id="uninstall">
 <details>
-     <summary><b>Uninstall</b></summary>
+     <summary><b>Uninstallation</b></summary>
 
 
 ## Cleaning up a cStor setup
@@ -346,6 +346,129 @@ Follow the steps below to cleanup of a cStor setup. On successful cleanup you ca
    ```
 
 </details>
+
+
+<div id="cpsc">
+<details>
+  <summary>
+ Creation of Storage pools
+  </summary>
+  For simplicity, this guide will provision a stripe pool on three nodes. A minimum of 3 replicas (on 3 nodes) is recommended for high-availability.
+
+1. Use the CSPC file from [examples/cspc/cspc-single.yaml](/examples/cspc/cspc-single.yaml) and modify by performing
+follwing steps:
+
+   Modify CSPC to add your node selector for the node where you want to provision the pool.
+   
+   List the nodes with labels:
+
+   ```bash
+   kubectl get node --show-labels
+   ```
+   
+   ```bash
+   NAME               STATUS   ROLES    AGE    VERSION   LABELS
+   master1            Ready    master   5d2h   v1.18.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=master1,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+
+   worker1            Ready    <none>   5d2h   v1.18.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=worker1,kubernetes.io/os=linux
+
+   worker2            Ready    <none>   5d2h   v1.18.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=worker2,kubernetes.io/os=linux
+
+   worker3            Ready    <none>   5d2h   v1.18.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=worker3,kubernetes.io/os=linux
+
+   ```
+   
+   In this guide, worker1 is picked. Modify the CSPC yaml to use this worker.
+   (Note: Use the value from labels kubernetes.io/hostname=worker1 as this label value and node name could be different in some platforms)
+
+   ```yaml
+   kubernetes.io/hostname: "worker1"
+   ```
+
+   Modify CSPC to add blockdevice attached to the same node where you want to provision the pool.
+   
+   ```bash
+   kubectl get bd -n openebs
+   ```
+   
+   ```bash
+   NAME                                           NODENAME           SIZE          CLAIMSTATE   STATUS   AGE
+   blockdevice-01afcdbe3a9c9e3b281c7133b2af1b68   worker3            21474836480   Unclaimed    Active   2m10s
+   blockdevice-10ad9f484c299597ed1e126d7b857967   worker1            21474836480   Unclaimed    Active   2m17s
+   blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b   worker2            21474836480   Unclaimed    Active   2m12s
+   ```
+    
+   ```yaml
+   - blockDeviceName: "blockdevice-10ad9f484c299597ed1e126d7b857967"
+   ```
+   
+   Finally the CSPC YAML looks like the following :
+   ```yaml
+   apiVersion: cstor.openebs.io/v1
+   kind: CStorPoolCluster
+   metadata:
+     name: cstor-storage
+     namespace: openebs
+   spec:
+     pools:
+       - nodeSelector:
+           kubernetes.io/hostname: "worker-1"
+         dataRaidGroups:
+           - blockDevices:
+               - blockDeviceName: "blockdevice-10ad9f484c299597ed1e126d7b857967"
+         poolConfig:
+           dataRaidGroupType: "stripe"
+   
+       - nodeSelector:
+           kubernetes.io/hostname: "worker-2" 
+         dataRaidGroups:
+           - blockDevices:
+               - blockDeviceName: "blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b"
+         poolConfig:
+           dataRaidGroupType: "stripe"
+      
+       - nodeSelector:
+           kubernetes.io/hostname: "worker-3"
+         dataRaidGroups:
+           - blockDevices:
+               - blockDeviceName: "blockdevice-01afcdbe3a9c9e3b281c7133b2af1b68"
+         poolConfig:
+           dataRaidGroupType: "stripe"
+   ```
+
+2.  Apply the modified CSPC YAML.
+
+    ```bash
+    kubectl apply -f cspc-single.yaml
+    ```
+3. Check if the pool instances report their status as 'ONLINE'.
+
+    ```bash
+    kubectl get cspc -n openebs
+    ```
+
+    ```bash
+    NAME            HEALTHYINSTANCES   PROVISIONEDINSTANCES   DESIREDINSTANCES   AGE
+    cstor-storage   1                  1                      1                  2m2s
+
+    ```
+
+    ```bash
+    kubectl get cspi -n openebs
+    ```
+
+    ```bash
+    NAME                 HOSTNAME           ALLOCATED   FREE     CAPACITY   STATUS   AGE
+    cstor-storage-vn92   worker1            260k        19900M   19900M     ONLINE   2m17s
+    cstor-storage-al65   worker2            260k        19900M   19900M     ONLINE   2m17s
+    cstor-storage-y7pn   worker3            260k        19900M   19900M     ONLINE   2m17s
+    ```
+
+</details>
+
+
+
+
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
 <details>
