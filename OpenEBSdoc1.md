@@ -133,7 +133,7 @@ helm install openebs-cstor openebs-cstor/cstor -n openebs --create-namespace
 [Click here](https://github.com/openebs/cstor-operators/blob/HEAD/deploy/helm/charts/README.md) for detailed instructions.
 
 <div id="uninstall">
-   <details>
+<details>
      <summary><b>Uninstall</b></summary>
 ---
 id: clean-up
