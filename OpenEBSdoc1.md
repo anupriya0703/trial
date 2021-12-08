@@ -203,21 +203,7 @@ NOTE:
 <div id="uninstall">
 <details>
      <summary><b>Uninstall</b></summary>
----
-id: clean-up
-title: cStor User Guide - Clean Up
-keywords:
-  - cStor csi
-  - cStor User Guide
-  - Cleaning up a cStor setup
-description: This user guide will help you in cleaning up your cStor setup.
----
 
-This user guide will help you in cleaning up your cStor setup.
-
-### Clean up
-
-- [Cleaning up a cStor setup](#cleaning-up-a-cstor-setup)
 
 ## Cleaning up a cStor setup
 
