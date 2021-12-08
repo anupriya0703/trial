@@ -10,7 +10,7 @@
 >     - [Creation of Storage Pools](#cspc)
 >     - [Creation of Storage Classes](#sc)
 >     - [Deploy a Sample Application](#application)
->     - Upgrade
+>     - [Upgrade](#upgrade)
 >     - [Uninstallation](#uninstall)
 >- Advanced operations
 >     - Backup and Restore
@@ -455,8 +455,9 @@ follwing steps:
     ```
 </details>
 
+<div id="upgrade">
 <details>
-  <summary><b>Upgrade</summary>
+  <summary><b>Upgrade</b></summary>
 This document describes the steps for OpenEBS Upgrade path: 1.8.0 or later to a newer release up to 2.12.0
 
    ### Prerequisites for upgrading OpenEBS 
