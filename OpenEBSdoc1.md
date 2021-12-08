@@ -410,7 +410,7 @@ follwing steps:
 <div id="application">
 <details>
   <summary>
- <b>Application</b>
+ <b>Deploying a busybox application</b>
   </summary>
   Create an application and use the above created PVC.
 
