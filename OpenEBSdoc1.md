@@ -8,7 +8,7 @@
 >     - [Prerequisites](#prerequisites)
 >     - [Installtaion](#installation)
 >     - [Creation of Storage Pools](#cspc)
->     - Creation of Storage Classes
+>     - [Creation of Storage Classes](#sc)
 >     - Deploy a Sample Application
 >     - Upgrade
 >     - [Uninstallation](#uninstall)
@@ -351,7 +351,7 @@ Follow the steps below to cleanup of a cStor setup. On successful cleanup you ca
 <div id="cpsc">
 <details>
   <summary>
- Creation of Storage pools
+ <b>Creation of Storage pools</b>
   </summary>
   For simplicity, this guide will provision a stripe pool on three nodes. A minimum of 3 replicas (on 3 nodes) is recommended for high-availability.
 
@@ -466,6 +466,91 @@ follwing steps:
 
 </details>
 
+<div id="sc">
+<details>
+  <summary>
+ <b>Creation of Storage Class</b>
+  </summary>
+  Once your pool instances have come online, you can proceed with volume provisioning.
+    Create a storageClass to dynamically provision volumes using OpenEBS CSI provisioner.
+    A sample storageClass:
+
+   ```yaml
+   kind: StorageClass
+   apiVersion: storage.k8s.io/v1
+   metadata:
+     name: cstor-csi
+   provisioner: cstor.csi.openebs.io
+   allowVolumeExpansion: true
+   parameters:
+     cas-type: cstor
+     # cstorPoolCluster should have the name of the CSPC
+     cstorPoolCluster: cstor-storage
+     # replicaCount should be <= no. of CSPI
+     replicaCount: "3"
+   ```
+
+   Create a storageClass using above example.
+
+   ```bash
+   kubectl apply -f csi-cstor-sc.yaml
+   ```
+
+   You will need to specify the correct cStor CSPC from your cluster
+   and specify the desired `replicaCount` for the volume. The `replicaCount`
+   should be less than or equal to the max pool instances available.
+
+- Create a PVC yaml using above created StorageClass name
+
+    ```yaml
+    kind: PersistentVolumeClaim
+    apiVersion: v1
+    metadata:
+      name: demo-cstor-vol
+    spec:
+      storageClassName: cstor-csi
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+     ```
+
+    Apply the above pvc yaml to dynamically create volume and verify that
+    the PVC has been successfully created and bound to a PersistentVolume (PV).
+
+    ```bash
+    $ kubectl get pvc
+    NAME              STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS       AGE
+    demo-cstor-vol    Bound    pvc-52d88903-0518-11ea-b887-42010a80006c   5Gi        RWO            cstor-csi-stripe   10s
+    ```
+
+- Verify that the all volume-specific resources have been created
+    successfully. Check if CStorColumeConfig(cvc) is in `Bound` state.
+
+    ```bash
+    $ kubectl get cstorvolumeconfig -n openebs
+    NAME                                         CAPACITY   STATUS    AGE
+    pvc-52d88903-0518-11ea-b887-42010a80006c2    5Gi        Bound     60s
+    ```
+
+    Verify volume and its replicas are in `Healthy` state.
+
+    ```bash
+    $ kubectl get cstorvolume -n openebs
+    NAME                                         CAPACITY   STATUS    AGE
+    pvc-52d88903-0518-11ea-b887-42010a80006c2    5Gi        Healthy   60s
+    ```
+
+    ```bash
+    $ kubectl get cstorvolumereplica -n openebs
+    NAME                                                          ALLOCATED   USED    STATUS    AGE
+    pvc-52d88903-0518-11ea-b887-42010a80006c-cstor-storage-vn92   6K          6K      Healthy   60s
+    pvc-52d88903-0518-11ea-b887-42010a80006c-cstor-storage-al65   6K          6K      Healthy   60s
+    pvc-52d88903-0518-11ea-b887-42010a80006c-cstor-storage-y7pn   6K          6K      Healthy   60s
+    ```
+
+</details>
 
 
 
