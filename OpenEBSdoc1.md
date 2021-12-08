@@ -70,8 +70,7 @@ The cStor operators work in conjunction with the [cStor CSI driver](https://gith
 
    1. Kubernetes version 1.17 or higher.
    2. iSCSI initiator utils installed on all the worker nodes. 
-   
-    >In case of a Rancher based cluster ensure the rerequisites mentioned [here](https://github.com/   openebs/cstor-operators/blob/develop/docs/troubleshooting/rancher_prerequisite.md) are met.
+   >In case of a Rancher based cluster ensure the rerequisites mentioned [here](https://github.com/   openebs/cstor-operators/blob/develop/docs/troubleshooting/rancher_prerequisite.md) are met.
 
 
 
