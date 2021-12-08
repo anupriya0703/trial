@@ -209,29 +209,29 @@ NOTE:
 
 Follow the steps below to cleanup of a cStor setup. On successful cleanup you can reuse the cluster's disks/block devices for other storage engines.
 
-1. Delete the application or deployment which uses CSI based cStor CAS engine. In this example we are going to delete the Busybox application that was deployed previously. To delete, execute:
+1. Delete the application or deployment which uses CSI based cStor CAS engine. In this example we are  going to delete the Busybox application that was deployed previously. To delete, execute:
 
    ```
    kubectl delete pod <pod-name>
    ```
 
    Example command:
+  
+   ```
+   kubectl delete busybox
+   ```
 
-```
- kubectl delete busybox
-```
+   Verify that the application pod has been deleted
 
-Verify that the application pod has been deleted
+   ```
+   kubectl get pods
+   ```
 
-```
-kubectl get pods
-```
+   Sample Output:
 
-Sample Output:
-
-```shell hideCopy
-No resources found in default namespace.
-```
+   ```shell hideCopy
+   No resources found in default namespace.
+   ```
 
 2. Next, delete the corresponding PVC attached to the application. To delete PVC, execute:
 
