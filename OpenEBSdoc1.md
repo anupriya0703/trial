@@ -9,7 +9,7 @@
 >     - [Installtaion](#installation)
 >     - [Creation of Storage Pools](#cspc)
 >     - [Creation of Storage Classes](#sc)
->     - Deploy a Sample Application
+>     - [Deploy a Sample Application](#application)
 >     - Upgrade
 >     - [Uninstallation](#uninstall)
 >- Advanced operations
@@ -553,7 +553,53 @@ follwing steps:
 </details>
 
 
+<div id="application">
+<details>
+  <summary>
+ <b>Application</b>
+  </summary>
+  Create an application and use the above created PVC.
 
+    ```yaml
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: busybox
+      namespace: default
+    spec:
+      containers:
+      - command:
+           - sh
+           - -c
+           - 'date >> /mnt/openebs-csi/date.txt; hostname >> /mnt/openebs-csi/hostname.txt; sync; sleep 5; sync; tail -f /dev/null;'
+        image: busybox
+        imagePullPolicy: Always
+        name: busybox
+        volumeMounts:
+        - mountPath: /mnt/openebs-csi
+          name: demo-vol
+      volumes:
+      - name: demo-vol
+        persistentVolumeClaim:
+          claimName: demo-cstor-vol
+    ```
+
+    Verify that the pod is running and is able to write data to the volume.
+
+    ```bash
+    $ kubectl get pods
+    NAME      READY   STATUS    RESTARTS   AGE
+    busybox   1/1     Running   0          97s
+    ```
+
+    The example busybox application will write the current date into the
+    mounted path at `/mnt/openebs-csi/date.txt` when it starts.
+
+    ```bash
+    $ kubectl exec -it busybox -- cat /mnt/openebs-csi/date.txt
+    Wed Jul 12 07:00:26 UTC 2020
+    ```
+</details>
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
 <details>
