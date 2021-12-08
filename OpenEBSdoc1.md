@@ -5,7 +5,7 @@
 >- [cStor Operators](#cstor-operators)
 >- [Why cStor Operators?](#why-cstor-operators)
 >- [Deploying cStor Operators](#deploying-cstor-operators)
->     - Prerequisites
+>     - [Prerequisites](#prerequisites)
 >     - Installtaion
 >     - Creation of Storage Pools
 >     - Creation of Storage Classes
@@ -64,20 +64,20 @@ The cStor operators work in conjunction with the [cStor CSI driver](https://gith
 <i>Each of these operations is detailed here.</i>
 
 ## <a class="anchor" aria-hidden="true" id="deploying-cstor-operators"></a>Deploying cStor Operators
-
+   <div id="prerequisites">
    <details>
      <summary><b>Prerequisites</b></summary>
 
    1. Kubernetes version 1.17 or higher.
    2. iSCSI initiator utils installed on all the worker nodes. 
    
-  In case of a Rancher based cluster ensure the rerequisites mentioned [here](https://github.com/   openebs/cstor-operators/blob/develop/docs/troubleshooting/rancher_prerequisite.md) are met.
+   In case of a Rancher based cluster ensure the rerequisites mentioned [here](https://github.com/   openebs/cstor-operators/blob/develop/docs/troubleshooting/rancher_prerequisite.md) are met.
 
-   | OPERATING SYSTEM | iSCSI PACKAGE         | Commands to install iSCSI                                | Verify iSCSI Status         |
-   | ---------------- | --------------------- | -------------------------------------------------------- | --------------------------- |
-   | RHEL/CentOS      | iscsi-initiator-utils | <ul><li>sudo yum install iscsi-initiator-utils -y</li><li>sudo systemctl enable --now iscsid</li></ul> | sudo systemctl status iscsid.service |
-   | Ubuntu/Debian   | open-iscsi            |  <ul><li>sudo apt install open-iscsi -y</li><li>sudo systemctl enable --now iscsid</li></ui>| sudo systemctl status iscsid.service |
-   | RancherOS        | open-iscsi            |  <ul><li>sudo ros s enable open-iscsi</li><li>sudo ros s up open-iscsi</li></ui>| ros service list iscsi |
+    | OPERATING SYSTEM | iSCSI PACKAGE         | Commands to install iSCSI                                | Verify iSCSI Status         |
+    | ---------------- | --------------------- | -------------------------------------------------------- | --------------------------- |
+    | RHEL/CentOS      | iscsi-initiator-utils | <ul><li>sudo yum install iscsi-initiator-utils -y</li><li>sudo systemctl enable --now iscsid</li></ul> | sudo systemctl status iscsid.service |
+    | Ubuntu/Debian   | open-iscsi            |  <ul><li>sudo apt install open-iscsi -y</li><li>sudo systemctl enable --now iscsid</li></ui>| sudo systemctl status iscsid.service |
+    | RancherOS        | open-iscsi            |  <ul><li>sudo ros s enable open-iscsi</li><li>sudo ros s up open-iscsi</li></ui>| ros service list iscsi |
 
    3. You have disks attached to nodes to provision the storage. The disks MUST not have any filesystem and the disks MUST not be mounted on the Node. cStor requires raw block devices. You can use the `lsblk -fa` command to check if the disks have a filesystem or if the disk is mounted.
    </details>
