@@ -954,7 +954,9 @@ Follow the steps below to cleanup of a cStor setup. On successful cleanup you ca
 ## <a class="anchor" aria-hidden="true" id="adv-operations"></a>Advanced operations 
    <div id="backup-restore">
    <details>
-     <summary><b>Snapshot and Clone of a cStor volume</b></summary>
+     <summary><b>Snapshot and Clone of a cStor volume(Backup and Restore)</b></summary>
+
+
      An OpenEBS snapshot is a set of reference markers for data at a particular point in time. A snapshot act as a detailed table of contents, with accessible copies of data that user can roll back to the required point of instance. Snapshots in OpenEBS are instantaneous and are managed through kubectl.
 
 During the installation of OpenEBS, a snapshot-controller and a snapshot-provisioner are setup which assist in taking the snapshots. During the snapshot creation, snapshot-controller creates VolumeSnapshot and VolumeSnapshotData custom resources. A snapshot-provisioner is used to restore a snapshot as a new Persistent Volume(PV) via dynamic provisioning.
@@ -1089,6 +1091,19 @@ Sample Output:
 NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS              AGE
 restore-cstor-pvc              Bound    pvc-2f2d65fc-0784-11ea-b887-42010a80006c   5Gi        RWO            cstor-csi-disk            5s
 ```
+   </details>
+
+   <detials>
+     <summary><b>Advanced operations on pools</b></summary>
+         <details> 
+          <summary>Scaling cStor pools</summary>
+         </details>
+         <details>
+          <summary>Block Device Tagging</summary>
+         </details>
+         <details>
+          <summary>Tuning pools</summary>
+         </details>
    </details>
      
 
