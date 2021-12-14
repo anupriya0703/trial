@@ -12,8 +12,8 @@
 >     - [Deploy a Sample Application](#application)
 >     - [Upgrade](#upgrade)
 >     - [Uninstallation](#uninstall)
->- Advanced operations
->     - Backup and Restore
+>- [Advanced operations](#adv-operations)
+>     - [Backup and Restore](#backup-restore)
 >     - Pools
 >         - Scaling cStor pools
 >         - Block Device Tagging
@@ -949,6 +949,148 @@ Follow the steps below to cleanup of a cStor setup. On successful cleanup you ca
    ```
 
 </details>
+
+
+## <a class="anchor" aria-hidden="true" id="adv-operations"></a>Advanced operations 
+   <div id="backup-restore">
+   <details>
+     <summary>Snapshot and Clone of a cStor volume  </summary>
+     An OpenEBS snapshot is a set of reference markers for data at a particular point in time. A snapshot act as a detailed table of contents, with accessible copies of data that user can roll back to the required point of instance. Snapshots in OpenEBS are instantaneous and are managed through kubectl.
+
+During the installation of OpenEBS, a snapshot-controller and a snapshot-provisioner are setup which assist in taking the snapshots. During the snapshot creation, snapshot-controller creates VolumeSnapshot and VolumeSnapshotData custom resources. A snapshot-provisioner is used to restore a snapshot as a new Persistent Volume(PV) via dynamic provisioning.
+
+### Creating a cStor volume Snapshot
+
+1.  Before proceeding to create a cStor volume snapshot and use it further for restoration, it is necessary to create a `VolumeSnapshotClass`. Copy the following YAML specification into a file called `snapshot_class.yaml`.
+
+    ```
+    kind: VolumeSnapshotClass
+    apiVersion: snapshot.storage.k8s.io/v1
+    metadata:
+    name: csi-cstor-snapshotclass
+    annotations:
+      snapshot.storage.kubernetes.io/is-default-class: "true"
+    driver: cstor.csi.openebs.io
+    deletionPolicy: Delete
+    ```
+
+    The deletion policy can be set as `Delete or Retain`. When it is set to Retain, the underlying physical snapshot on the storage cluster is retained even when the VolumeSnapshot object is deleted.
+    To apply, execute:
+
+    ```
+    kubectl apply -f snapshot_class.yaml
+    ```
+
+    **Note:** In clusters that only install `v1beta1` version of VolumeSnapshotClass as the supported version(eg. OpenShift(OCP) 4.5 ), the following error might be encountered.
+
+    ```
+    no matches for kind "VolumeSnapshotClass" in version "snapshot.storage.k8s.io/v1"
+    ```
+
+    In such cases, the apiVersion needs to be updated to `apiVersion: snapshot.storage.k8s.io/v1beta1`
+
+2.  For creating the snapshot, you need to create a YAML specification and provide the required PVC name into it. The only prerequisite check is to be performed is to ensure that there is no stale entries of snapshot and snapshot data before creating a new snapshot. Copy the following YAML specification into a file called `snapshot.yaml`.
+
+    ```
+    apiVersion: snapshot.storage.k8s.io/v1
+    kind: VolumeSnapshot
+    metadata:
+    name: cstor-pvc-snap
+    spec:
+    volumeSnapshotClassName: csi-cstor-snapshotclass
+    source:
+      persistentVolumeClaimName: cstor-pvc
+    ```
+
+    Run the following command to create the snapshot,
+
+    ```
+    kubectl create -f snapshot.yaml
+    ```
+
+    To list the snapshots, execute:
+
+    ```
+    kubectl get volumesnapshots -n default
+    ```
+
+    Sample Output:
+
+    ```shell hideCopy
+    NAME                        AGE
+    cstor-pvc-snap              10s
+    ```
+
+    A VolumeSnapshot is analogous to a PVC and is associated with a `VolumeSnapshotContent` object that represents the actual snapshot. To identify the VolumeSnapshotContent object for the VolumeSnapshot execute:
+
+    ```
+    kubectl describe volumesnapshots cstor-pvc-snap -n default
+    ```
+
+    Sample Output:
+
+    ```shell hideCopy
+    Name:         cstor-pvc-snap
+    Namespace:    default
+    .
+    .
+    .
+    Spec:
+    Snapshot Class Name:    cstor-csi-snapshotclass
+    Snapshot Content Name:  snapcontent-e8d8a0ca-9826-11e9-9807-525400f3f660
+    Source:
+      API Group:
+      Kind:       PersistentVolumeClaim
+      Name:       cstor-pvc
+    Status:
+    Creation Time:  2020-06-20T15:27:29Z
+    Ready To Use:   true
+    Restore Size:   5Gi
+
+    ```
+
+    The `SnapshotContentName` identifies the `VolumeSnapshotContent` object which serves this snapshot. The `Ready To Use` parameter indicates that the Snapshot has been created successfully and can be used to create a new PVC.
+
+**Note:** All cStor snapshots should be created in the same namespace of source PVC.
+
+### Cloning a cStor Snapshot
+
+Once the snapshot is created, you can use it to create a PVC. In order to restore a specific snapshot, you need to create a new PVC that refers to the snapshot. Below is an example of a YAML file that restores and creates a PVC from a snapshot.
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+ name: restore-cstor-pvc
+spec:
+ storageClassName: cstor-csi-disk
+ dataSource:
+   name: cstor-pvc-snap
+   kind: VolumeSnapshot
+   apiGroup: snapshot.storage.k8s.io
+ accessModes:
+   - ReadWriteOnce
+ resources:
+   requests:
+     storage: 5Gi
+```
+
+The `dataSource` shows that the PVC must be created using a VolumeSnapshot named `cstor-pvc-snap` as the source of the data. This instructs cStor CSI to create a PVC from the snapshot. Once the PVC is created, it can be attached to a pod and used just like any other PVC.
+
+To verify the creation of PVC execute:
+
+```
+kubectl get pvc
+```
+
+Sample Output:
+
+```shell hideCopy
+NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS              AGE
+restore-cstor-pvc              Bound    pvc-2f2d65fc-0784-11ea-b887-42010a80006c   5Gi        RWO            cstor-csi-disk            5s
+```
+   </details>
+     
 
 ## <a class="anchor" aria-hidden="true" id="tuning-vol"></a>Tuning cStor volumes
 <details>
