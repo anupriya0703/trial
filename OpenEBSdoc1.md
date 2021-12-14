@@ -1095,15 +1095,9 @@ restore-cstor-pvc              Bound    pvc-2f2d65fc-0784-11ea-b887-42010a80006c
 
    <detials>
      <summary><b>Advanced operations on pools</b></summary>
-         <details> 
-          <summary>Scaling cStor pools</summary>
-         </details>
-         <details>
-          <summary>Block Device Tagging</summary>
-         </details>
-         <details>
-          <summary>Tuning pools</summary>
-         </details>
+         <h2> Scaling cStor pools </h2>
+         Block Device Tagging
+        Tuning pools
    </details>
      
 
