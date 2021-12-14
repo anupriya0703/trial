@@ -1229,7 +1229,418 @@ spec:
        dataRaidGroupType: "stripe"
 
 ```
+<h2>Block Device Tagging</h2>
+   ## Block Device Tagging
 
+NDM provides you with an ability to reserve block devices to be used for specific applications via adding tag(s) to your block device(s). This feature can be used by cStor operators to specify the block devices which should be consumed by cStor pools and conversely restrict anyone else from using those block devices. This helps in protecting against manual errors in specifying the block devices in the CSPC yaml by users.
+
+1. Consider the following block devices in a Kubernetes cluster, they will be used to provision a storage pool. List the labels added to these block devices,
+
+```
+kubectl get bd -n openebs --show-labels
+```
+
+Sample Output:
+
+```shell hideCopy
+NAME                                           NODENAME               SIZE          CLAIMSTATE   STATUS   AGE   LABELS
+blockdevice-00439dc464b785256242113bf0ef64b9   worker-node-3          21473771008   Unclaimed    Active   34h   kubernetes.io/hostname=worker-node-3,ndm.io/blockdevice-type=blockdevice,ndm.io/managed=true
+blockdevice-022674b5f97f06195fe962a7a61fcb64   worker-node-1          21473771008   Unclaimed    Active   34h   kubernetes.io/hostname=worker-node-1,ndm.io/blockdevice-type=blockdevice,ndm.io/managed=true
+blockdevice-241fb162b8d0eafc640ed89588a832df   worker-node-2          21473771008   Unclaimed    Active   34h   kubernetes.io/hostname=worker-node-2,ndm.io/blockdevice-type=blockdevice,ndm.io/managed=true
+
+```
+
+2. Now, to understand how block device tagging works we will be adding `openebs.io/block-device-tag=fast` to the block device attached to worker-node-3 _(i.e blockdevice-00439dc464b785256242113bf0ef64b9)_
+
+```
+kubectl label bd blockdevice-00439dc464b785256242113bf0ef64b9 -n openebs  openebs.io/block-device-tag=fast
+```
+
+```
+kubectl get bd -n openebs blockdevice-00439dc464b785256242113bf0ef64b9 --show-labels
+```
+
+Sample Output:
+
+```shell hideCopy
+NAME                                           NODENAME             SIZE          CLAIMSTATE   STATUS   AGE   LABELS
+blockdevice-00439dc464b785256242113bf0ef64b9   worker-node-3        21473771008   Unclaimed    Active   34h   kubernetes.io/hostname=worker-node-3,ndm.io/blockdevice-type=blockdevice,ndm.io/managed=true,openebs.io/block-device-tag=fast
+```
+
+Now, provision cStor pools using the following CSPC YAML. Note, `openebs.io/allowed-bd-tags:` is set to `cstor, ssd` which ensures the CSPC will be created using the block devices that either have the label set to cstor or ssd, or have no such label.
+
+```
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+name: cspc-disk-pool
+namespace: openebs
+annotations:
+  # This annotation helps to specify the BD that can be allowed.
+  openebs.io/allowed-bd-tags: cstor,ssd
+spec:
+pools:
+  - nodeSelector:
+      kubernetes.io/hostname: "worker-node-1"
+    dataRaidGroups:
+    - blockDevices:
+        - blockDeviceName: "blockdevice-022674b5f97f06195fe962a7a61fcb64"
+    poolConfig:
+      dataRaidGroupType: "stripe"
+- nodeSelector:
+      kubernetes.io/hostname: "worker-node-2"
+    dataRaidGroups:
+      - blockDevices:
+          - blockDeviceName: "blockdevice-241fb162b8d0eafc640ed89588a832df"
+    poolConfig:
+      dataRaidGroupType: "stripe"
+- nodeSelector:
+      kubernetes.io/hostname: "worker-node-3"
+    dataRaidGroups:
+      - blockDevices:
+          - blockDeviceName: "blockdevice-00439dc464b785256242113bf0ef64b9"
+    poolConfig:
+      dataRaidGroupType: "stripe"
+```
+
+Apply the above CSPC file for CSPIs to get created and check the CSPI status.
+
+```
+kubectl apply -f cspc.yaml
+```
+
+```
+kubectl get cspi -n openebs
+```
+
+Sample Output:
+
+```shell hideCopy
+NAME             HOSTNAME        FREE   CAPACITY    READONLY PROVISIONEDREPLICAS HEALTHYREPLICAS STATUS   AGE
+cspc-stripe-b9f6 worker-node-2   19300M 19300614k   false      0                     0          ONLINE   89s
+cspc-stripe-q7xn worker-node-1   19300M 19300614k   false      0                     0          ONLINE   89s
+
+```
+
+Note that CSPI for node **worker-node-3** is not created because:
+
+- CSPC YAML created above has `openebs.io/allowed-bd-tags: cstor, ssd` in its annotation. Which means that the CSPC operator will only consider those block devices for provisioning that either do not have a BD tag, openebs.io/block-device-tag, on the block device or have the tag with the values set as `cstor or ssd`.
+- In this case, the blockdevice-022674b5f97f06195fe962a7a61fcb64 (on node worker-node-1) and blockdevice-241fb162b8d0eafc640ed89588a832df (on node worker-node-2) do not have the label. Hence, no restrictions are applied on it and they can be used as the CSPC operator for pool provisioning.
+- For blockdevice-00439dc464b785256242113bf0ef64b9 (on node worker-node-3), the label `openebs.io/block-device-tag` has the value fast. But on the CSPC, the annotation openebs.io/allowed-bd-tags has value cstor and ssd. There is no fast keyword present in the annotation value and hence this block device cannot be used.
+
+**NOTE:**
+
+1. To allow multiple tag values, the bd tag annotation can be written in the following comma-separated manner:
+
+```
+  openebs.io/allowed-bd-tags: fast,ssd,nvme
+```
+
+2. BD tag can only have one value on the block device CR. For example,
+   - openebs.io/block-device-tag: fast
+     Block devices should not be tagged in a comma-separated format. One of the reasons for this is, cStor allowed bd tag annotation takes comma-separated values and values like(i.e fast, ssd ) can never be interpreted as a single word in cStor and hence BDs tagged in above format cannot be utilised by cStor.
+3. If any block device mentioned in CSPC has an empty value for `the openebs.io/block-device-tag`, then those block devices will not be considered for pool provisioning and other operations. Block devices with empty tag value are implicitly not allowed by the CSPC operator.
+
+<h2>Tuning cStor Pools</h2>
+
+Allow users to set available performance tunings in cStor Pools based on their workload. cStor pool(s) can be tuned via CSPC and is the recommended way to do it. Below are the tunings that can be applied:
+
+**Resource requests and limits:** This ensures high quality of service when applied for the pool manager containers.
+
+**Toleration for pool manager pod:** This ensures scheduling of pool pods on the tainted nodes.
+
+**Set priority class:** Sets the priority levels as required.
+
+**Compression:** This helps in setting the compression for cStor pools.
+
+**ReadOnly threshold:** Helps in specifying read only thresholds for cStor pools.
+
+**Example configuration for Resource and Limits:**
+
+Following CSPC YAML specifies resources and auxResources that will get applied to all pool manager pods for the CSPC. Resources get applied to cstor-pool containers and auxResources gets applied to sidecar containers i.e. cstor-pool-mgmt and pool-exporter.
+
+In the following CSPC YAML we have only one pool spec (@spec.pools). It is also possible to override the resource and limit value for a specific pool.
+
+```
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+ name: cstor-disk-pool
+ namespace: openebs
+spec:
+ resources:
+   requests:
+     memory: "2Gi"
+     cpu: "250m"
+   limits:
+     memory: "4Gi"
+     cpu: "500m"
+
+ auxResources:
+   requests:
+     memory: "500Mi"
+     cpu: "100m"
+   limits:
+     memory: "1Gi"
+     cpu: "200m"
+ pools:
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-1
+
+     dataRaidGroups:
+     - blockDevices:
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f36
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f37
+
+     poolConfig:
+       dataRaidGroupType: mirror
+```
+
+Following CSPC YAML explains how the resource and limits can be overridden. If you look at the CSPC YAML, there are no resources and auxResources specified at pool level for worker-node-1 and worker-node-2 but specified for worker-node-3. In this case, for worker-node-1 and worker-node-2 the resources and auxResources will be applied from @spec.resources and @spec.auxResources respectively but for worker-node-3 these will be applied from @spec.pools[2].poolConfig.resources and @spec.pools[2].poolConfig.auxResources respectively.
+
+```
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+ name: cstor-disk-pool
+ namespace: openebs
+spec:
+ resources:
+   requests:
+     memory: "64Mi"
+     cpu: "250m"
+   limits:
+     memory: "128Mi"
+     cpu: "500m"
+ auxResources:
+   requests:
+     memory: "50Mi"
+     cpu: "400m"
+   limits:
+     memory: "100Mi"
+     cpu: "400m"
+  pools:
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-1
+     dataRaidGroups:
+       - blockDevices:
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f36
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f37
+     poolConfig:
+       dataRaidGroupType: mirror
+
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-2
+     dataRaidGroups:
+       - blockDevices:
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f39
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f40
+     poolConfig:
+       dataRaidGroupType: mirror
+
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-3
+     dataRaidGroups:
+       - blockDevices:
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f42
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f43
+     poolConfig:
+       dataRaidGroupType: mirror
+       resources:
+         requests:
+           memory: 70Mi
+           cpu: 300m
+         limits:
+           memory: 130Mi
+           cpu: 600m
+       auxResources:
+         requests:
+           memory: 60Mi
+           cpu: 500m
+         limits:
+           memory: 120Mi
+           cpu: 500m
+
+```
+
+**Example configuration for Tolerations:**
+
+Tolerations are applied in a similar manner like resources and auxResources. The following is a sample CSPC YAML that has tolerations specified. For worker-node-1 and worker-node-2 tolerations are applied form @spec.tolerations but for worker-node-3 it is applied from @spec.pools[2].poolConfig.tolerations
+
+```
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+ name: cstor-disk-pool
+ namespace: openebs
+spec:
+
+ tolerations:
+ - key: data-plane-node
+   operator: Equal
+   value: true
+   effect: NoSchedule
+
+ pools:
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-1
+
+     dataRaidGroups:
+     - blockDevices:
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f36
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f37
+
+     poolConfig:
+       dataRaidGroupType: mirror
+
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-2
+
+     dataRaidGroups:
+     - blockDevices:
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f39
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f40
+
+     poolConfig:
+       dataRaidGroupType: mirror
+
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-3
+
+     dataRaidGroups:
+     - blockDevices:
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f42
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f43
+
+     poolConfig:
+       dataRaidGroupType: mirror
+       tolerations:
+       - key: data-plane-node
+         operator: Equal
+         value: true
+         effect: NoSchedule
+
+       - key: apac-zone
+         operator: Equal
+         value: true
+         effect: NoSchedule
+```
+
+**Example configuration for Priority Class:**
+
+Priority Classes are also applied in a similar manner like resources and auxResources. The following is a sample CSPC YAML that has a priority class specified. For worker-node-1 and worker-node-2 priority classes are applied from @spec.priorityClassName but for worker-node-3 it is applied from @spec.pools[2].poolConfig.priorityClassName. Check more info about [priorityclass](https://kubernetes.io/docs/concepts/configuration/pod-priority-preemption/#priorityclass).
+
+**Note:**
+
+1. Priority class needs to be created beforehand. In this case, high-priority and ultra-priority priority classes should exist.
+2. The index starts from 0 for @.spec.pools list.
+
+   ```
+   apiVersion: cstor.openebs.io/v1
+   kind: CStorPoolCluster
+   metadata:
+   name: cstor-disk-pool
+   namespace: openebs
+   spec:
+
+   priorityClassName: high-priority
+
+   pools:
+     - nodeSelector:
+         kubernetes.io/hostname: worker-node-1
+
+       dataRaidGroups:
+       - blockDevices:
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f36
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f37
+
+       poolConfig:
+         dataRaidGroupType: mirror
+
+     - nodeSelector:
+         kubernetes.io/hostname: worker-node-2
+
+       dataRaidGroups:
+       - blockDevices:
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f39
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f40
+
+       poolConfig:
+         dataRaidGroupType: mirror
+
+     - nodeSelector:
+         kubernetes.io/hostname: worker-node-3
+
+       dataRaidGroups:
+       - blockDevices:
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f42
+           - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f43
+
+       poolConfig:
+         dataRaidGroupType: mirror
+         priorityClassName: utlra-priority
+   ```
+
+   **Example configuration for Compression:**
+
+   Compression values can be set at **pool level only**. There is no override mechanism like it was there in case of tolerations, resources, auxResources and priorityClass. Compression value must be one of
+
+   - on
+   - off
+   - lzjb
+   - gzip
+   - gzip-[1-9]
+   - zle
+   - lz4
+
+**Note:** lz4 is the default compression algorithm that is used if the compression field is left unspecified on the cspc. Below is the sample yaml which has compression specified.
+
+```
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+ name: cstor-disk-pool
+ namespace: openebs
+spec:
+ pools:
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-1
+
+     dataRaidGroups:
+     - blockDevices:
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f36
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f37
+
+     poolConfig:
+       dataRaidGroupType: mirror
+       compression: lz4
+```
+
+**Example configuration for Read Only Threshold:**
+
+RO threshold can be set in a similar manner like compression. ROThresholdLimit is the threshold(percentage base) limit for pool read only mode. If ROThresholdLimit (%) amount of pool storage is consumed then the pool will be set to readonly. If ROThresholdLimit is set to 100 then entire pool storage will be used. By default it will be set to 85% i.e when unspecified on the CSPC. ROThresholdLimit value will be 0 < ROThresholdLimit <= 100. Following CSPC yaml has the ReadOnly Threshold percentage specified.
+
+```
+apiVersion: cstor.openebs.io/v1
+kind: CStorPoolCluster
+metadata:
+ name: cstor-csi-disk
+ namespace: openebs
+spec:
+ pools:
+   - nodeSelector:
+       kubernetes.io/hostname: worker-node-1
+
+     dataRaidGroups:
+     - blockDevices:
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f36
+         - blockDeviceName: blockdevice-ada8ef910929513c1ad650c08fbe3f37
+
+     poolConfig:
+       dataRaidGroupType: mirror
+
+       roThresholdLimit : 70
+```
    </details>
      
 
