@@ -14,7 +14,7 @@
 >     - [Uninstallation](#uninstall)
 >- [Advanced operations](#adv-operations)
 >     - [Backup and Restore](#backup-restore)
->     - Pools
+>     - [Pools](#pools)
 >         - Scaling cStor pools
 >         - Block Device Tagging
 >         - Tuning pools
@@ -1092,18 +1092,144 @@ NAME                           STATUS   VOLUME                                  
 restore-cstor-pvc              Bound    pvc-2f2d65fc-0784-11ea-b887-42010a80006c   5Gi        RWO            cstor-csi-disk            5s
 ```
    </details>
-
+  <div id="pools">
    <details>
-     <summary><b>Advanced operations on pools</b></summary>
-         <details> 
-          <summary>Scaling cStor pools</summary>
-         </details>
-         <details>
-          <summary>Block Device Tagging</summary>
-         </details>
-         <details>
-          <summary>Tuning pools</summary>
-         </details>
+     <summary><b>Advanced operations on pools</b></summary> 
+          <h2>Scaling up cStor pools</h2>
+              Once the cStor storage pools are created you can scale-up your existing cStor pool.
+              To scale-up the pool size, you need to edit the CSPC YAML that was used for creation of CStorPoolCluster.
+
+              Scaling up can done by two methods:
+
+              1. [Adding new nodes(with new disks) to the existing CSPC](#adding-disk-new-node)
+              2. [Adding new disks to existing nodes](#adding-disk-same-node)
+
+              **Note:** The dataRaidGroupType: can either be set as stripe or mirror as per your requirement. In the following example it is configured as stripe.
+
+              ### Adding new nodes(with new disks) to the existing CSPC
+
+              A new node spec needs to be added to previously deployed YAML,
+
+              ```
+              apiVersion: cstor.openebs.io/v1
+              kind: CStorPoolCluster
+              metadata:
+              name: cstor-disk-pool
+              namespace: openebs
+              spec:
+              pools:
+                - nodeSelector:
+                    kubernetes.io/hostname: "worker-node-1"
+                  dataRaidGroups:
+                    - blockDevices:
+                        - blockDeviceName: "blockdevice-10ad9f484c299597ed1e126d7b857967"
+                  poolConfig:
+                    dataRaidGroupType: "stripe"
+
+                - nodeSelector:
+                    kubernetes.io/hostname: "worker-node-2"
+                  dataRaidGroups:
+                    - blockDevices:
+                        - blockDeviceName: "blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b"
+                  poolConfig:
+                    dataRaidGroupType: "stripe"
+
+                - nodeSelector:
+                    kubernetes.io/hostname: "worker-node-3"
+                  dataRaidGroups:
+                    - blockDevices:
+                        - blockDeviceName: "blockdevice-01afcdbe3a9c9e3b281c7133b2af1b68"
+                  poolConfig:
+                    dataRaidGroupType: "stripe"
+
+                # New node spec added -- to create a cStor pool on worker-3
+                - nodeSelector:
+                    kubernetes.io/hostname: "worker-node-4"
+                  dataRaidGroups:
+                    - blockDevices:
+                        - blockDeviceName: "blockdevice-02d9b2dc8954ce0347850b7625375e24"
+                  poolConfig:
+                    dataRaidGroupType: "stripe"
+
+              ```
+
+              Now verify the status of CSPC and CSPI(s):
+
+              ```
+              kubectl get cspc -n openebs
+              ```
+
+              Sample Output:
+
+              ```shell hideCopyshell hideCopy
+              NAME                     HEALTHYINSTANCES   PROVISIONEDINSTANCES   DESIREDINSTANCES   AGE
+              cspc-disk-pool           4                  4                      4                  8m5s
+              ```
+
+              ```
+              kubectl get cspi -n openebs
+              ```
+
+              Sample Output:
+
+              ```shell hideCopyshell hideCopy
+              NAME                  HOSTNAME         FREE     CAPACITY    READONLY   STATUS   AGE
+              cspc-disk-pool-d9zf   worker-node-1    28800M   28800071k   false      ONLINE   7m50s
+              cspc-disk-pool-lr6z   worker-node-2    28800M   28800056k   false      ONLINE   7m50s
+              cspc-disk-pool-x4b4   worker-node-3    28800M   28800056k   false      ONLINE   7m50s
+              cspc-disk-pool-rt4k   worker-node-4    28800M   28800056k   false      ONLINE   15s
+
+              ```
+
+              As a result of this, we can see that a new pool have been added, increasing the number of pools to 4
+
+              ### Adding new disks to existing nodes
+
+              A new `blockDeviceName` under `blockDevices` needs to be added to previously deployed YAML. Execute the following command to edit the CSPC,
+
+              ```
+              kubectl edit cspc -n openebs cstor-disk-pool
+              ```
+
+              Sample YAML:
+
+              ```
+              apiVersion: cstor.openebs.io/v1
+              kind: CStorPoolCluster
+              metadata:
+              name: cstor-disk-pool
+              namespace: openebs
+              spec:
+              pools:
+                - nodeSelector:
+                    kubernetes.io/hostname: "worker-node-1"
+                  dataRaidGroups:
+                    - blockDevices:
+                        - blockDeviceName: "blockdevice-10ad9f484c299597ed1e126d7b857967"
+                        - blockDeviceName: "blockdevice-f036513d98f6c7ce31fd6e1ac3fad2f5" //# New blockdevice added
+                  poolConfig:
+                    dataRaidGroupType: "stripe"
+
+                - nodeSelector:
+                    kubernetes.io/hostname: "worker-node-2"
+                  dataRaidGroups:
+                    - blockDevices:
+                        - blockDeviceName: "blockdevice-3ec130dc1aa932eb4c5af1db4d73ea1b"
+                        - blockDeviceName: "blockdevice-fb7c995c4beccd6c872b7b77aad32932" //# New blockdevice added
+                  poolConfig:
+                    dataRaidGroupType: "stripe"
+
+                - nodeSelector:
+                    kubernetes.io/hostname: "worker-node-3"
+                  dataRaidGroups:
+                    - blockDevices:
+                        - blockDeviceName: "blockdevice-01afcdbe3a9c9e3b281c7133b2af1b68"
+                        - blockDeviceName: "blockdevice-46ddda7223b35b81415b0a1b12e40bcb" //# New blockdevice added
+                  poolConfig:
+                    dataRaidGroupType: "stripe"
+
+              ```
+
    </details>
      
 
